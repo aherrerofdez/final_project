@@ -117,13 +117,16 @@ class Front(object):
         self.get_track(self.difficulties.index(track))
 
     def track_easy(self):
-        print("track 1")
+        length = 1
+        speed = 1
 
     def track_medium(self):
-        print("track 2")
+        length = 2
+        speed = 2
 
     def track_difficult(self):
-        print("track 3")
+        lenght = 4
+        speed = 4
 
     def get_track(self, index):
         switcher = {
