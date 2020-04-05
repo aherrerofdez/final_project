@@ -1,5 +1,7 @@
 import backend
 import sys
+import time
+import random
 import tkinter as tk
 from tkinter import font
 from tkinter import messagebox
@@ -47,6 +49,7 @@ class Front(object):
         obstacle_png.thumbnail(car_size)
         self.obstacle_img = ImageTk.PhotoImage(obstacle_png)
         self.obstacle_car = self.racetrack.create_image(25, -50, image=self.obstacle_img)
+        self.obstacle_car2 = self.racetrack.create_image(475, 600, image=self.obstacle_img)
 
         # Create Settings Panel
         self.instructions = tk.Button(self.mainframe, text="INSTRUCTIONS", command=self.show_instructions)
@@ -81,6 +84,8 @@ class Front(object):
             col += 1
 
         self.speed = 0
+        self.start_time = 0
+        self.start_play2 = True
 
         self.play = tk.Button(self.mainframe, text="PLAY", command=self.play, font=self.font_title, width=6)
         self.play.config(bg=self.btn_color, fg=self.font_color)
@@ -157,6 +162,7 @@ class Front(object):
             self.difficulties[1].config(bg=self.font_color, fg=self.btn_color)
             self.speed = self.bk.get_track(1)
 
+        self.start_time = time.time()
         self.play_background()
 
     def move(self, event):
@@ -169,9 +175,25 @@ class Front(object):
             self.racetrack.move(self.player_car, 10, 0)
 
     def play_background(self):
+        if round((time.time() - self.start_time), 1) == 1.5 and self.start_play2:
+            self.start_play2 = False
+            self.play_background2()
         if int(self.racetrack.coords(self.obstacle_car)[1]) < 600:
             self.racetrack.move(self.obstacle_car, 0, 10)
             self.window.after(self.speed, self.play_background)
+        else:
+            x = random.randint(25, 475)
+            self.racetrack.coords(self.obstacle_car, x, -50)
+            self.window.after(self.speed, self.play_background)
+
+    def play_background2(self):
+        if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
+            self.racetrack.move(self.obstacle_car2, 0, 10)
+            self.window.after(self.speed, self.play_background2)
+        else:
+            x = random.randint(25, 475)
+            self.racetrack.coords(self.obstacle_car2, x, -50)
+            self.window.after(self.speed, self.play_background2)
 
 
 window = tk.Tk()
