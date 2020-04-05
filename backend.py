@@ -2,7 +2,8 @@ class Back(object):
     def __init__(self):
         pass
 
-    def get_instructions(self):
+    @staticmethod
+    def get_instructions():
         instructions = '1. Choosing a Mode: \n     - User Mode: if you want to play the game. \n     - Computer Mode:' \
                        ' if you want to watch our AI play. \n \n 2. Choosing a Difficulty Level: \n You can choose ' \
                        'any level among Easy, Medium and Difficult. \n \n 3. Click on "PLAY" to start playing. You ' \
@@ -10,16 +11,18 @@ class Back(object):
                        'you want to close the game.'
         return instructions
 
-    def get_track(self, index):
+    @staticmethod
+    def get_track(index):
         # Default Mode: Medium
-        length = 2
+        length = 1.7
         speed = 50
         if index == 0:
             # Easy Mode
-            length = 1
+            length = 2.5
             speed = 75
         if index == 2:
             # Difficulty Mode
-            length = 4
+            length = 0.9
             speed = 25
-        return speed
+        params = [speed, length]
+        return params

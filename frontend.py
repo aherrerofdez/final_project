@@ -9,9 +9,15 @@ from PIL import ImageTk, Image
 
 
 class Front(object):
-    def __init__(self, w):
+    def __init__(self, w, speed=0, length=0, start_time=0, start_play2=True):
         # Connect with BackEnd
         self.bk = backend.Back()
+
+        # Initiate Params
+        self.speed = speed
+        self.length = length
+        self.start_time = start_time
+        self.start_play2 = start_play2
 
         # Define Colors
         self.bg_color = "#85A7B4"
@@ -83,10 +89,6 @@ class Front(object):
             self.difficulties.append(self.diff_opt)
             col += 1
 
-        self.speed = 0
-        self.start_time = 0
-        self.start_play2 = True
-
         self.play = tk.Button(self.mainframe, text="PLAY", command=self.play, font=self.font_title, width=6)
         self.play.config(bg=self.btn_color, fg=self.font_color)
         self.play.grid(row=5, column=1, columnspan=6, pady=(30, 25))
@@ -133,7 +135,8 @@ class Front(object):
         for btn in self.difficulties:
             btn.config(bg=self.btn_color, fg=self.font_color)
         track.config(bg=self.font_color, fg=self.btn_color)
-        self.speed = self.bk.get_track(self.difficulties.index(track))
+        self.speed = self.bk.get_track(self.difficulties.index(track))[0]
+        self.length = self.bk.get_track(self.difficulties.index(track))[1]
 
     def play(self):
         self.play["state"] = "disabled"
@@ -158,9 +161,15 @@ class Front(object):
         for btn in self.difficulties:
             if btn["bg"] == self.font_color:
                 play_default = False
+                btn["state"] = "disabled"
+                btn.config(disabledforeground=self.btn_color)
+            else:
+                btn["state"] = "disabled"
+                btn.config(disabledforeground=self.font_color)
         if play_default:
-            self.difficulties[1].config(bg=self.font_color, fg=self.btn_color)
-            self.speed = self.bk.get_track(1)
+            self.difficulties[1].config(bg=self.font_color, fg=self.btn_color, disabledforeground=self.btn_color)
+            self.speed = self.bk.get_track(1)[0]
+            self.length = self.bk.get_track(1)[1]
 
         self.start_time = time.time()
         self.play_background()
@@ -175,25 +184,37 @@ class Front(object):
             self.racetrack.move(self.player_car, 10, 0)
 
     def play_background(self):
-        if round((time.time() - self.start_time), 1) == 1.5 and self.start_play2:
-            self.start_play2 = False
-            self.play_background2()
-        if int(self.racetrack.coords(self.obstacle_car)[1]) < 600:
-            self.racetrack.move(self.obstacle_car, 0, 10)
-            self.window.after(self.speed, self.play_background)
+        if (time.time() - self.start_time) >= 60:
+            self.end_game()
         else:
-            x = random.randint(25, 475)
-            self.racetrack.coords(self.obstacle_car, x, -50)
-            self.window.after(self.speed, self.play_background)
+            if round((time.time() - self.start_time), 1) == self.length and self.start_play2:
+                self.start_play2 = False
+                self.play_background2()
+            if int(self.racetrack.coords(self.obstacle_car)[1]) < 600:
+                self.racetrack.move(self.obstacle_car, 0, 10)
+                self.window.after(self.speed, self.play_background)
+            else:
+                x = random.randint(25, 475)
+                self.racetrack.coords(self.obstacle_car, x, -50)
+                self.window.after(self.speed, self.play_background)
 
     def play_background2(self):
-        if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
-            self.racetrack.move(self.obstacle_car2, 0, 10)
-            self.window.after(self.speed, self.play_background2)
+        if (time.time() - self.start_time) <= 60:
+            if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
+                self.racetrack.move(self.obstacle_car2, 0, 10)
+                self.window.after(self.speed, self.play_background2)
+            else:
+                x = random.randint(25, 475)
+                self.racetrack.coords(self.obstacle_car2, x, -50)
+                self.window.after(self.speed, self.play_background2)
+
+    def end_game(self):
+        msg_box = messagebox.askyesno(message="Game Over. \n Do you want to play again?")
+        if msg_box:
+            self.mainframe.destroy()
+            Front(self.window)
         else:
-            x = random.randint(25, 475)
-            self.racetrack.coords(self.obstacle_car2, x, -50)
-            self.window.after(self.speed, self.play_background2)
+            exit()
 
 
 window = tk.Tk()
