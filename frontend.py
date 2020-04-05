@@ -36,11 +36,17 @@ class Front(object):
         # Create Race Track Canvas
         self.racetrack = tk.Canvas(self.mainframe, width=500, height=550, bg=self.path_color, highlightthickness=0)
         self.racetrack.grid(row=0, column=0, rowspan=8, padx=(25, 25), pady=(25, 0))
+
         car_size = 100, 100
         player_png = Image.open("img/player_car.png")
         player_png.thumbnail(car_size)
         self.player_img = ImageTk.PhotoImage(player_png)
         self.player_car = self.racetrack.create_image(250, 495, image=self.player_img)
+
+        obstacle_png = Image.open("img/obstacle_car.png")
+        obstacle_png.thumbnail(car_size)
+        self.obstacle_img = ImageTk.PhotoImage(obstacle_png)
+        self.obstacle_car = self.racetrack.create_image(25, -50, image=self.obstacle_img)
 
         # Create Settings Panel
         self.instructions = tk.Button(self.mainframe, text="INSTRUCTIONS", command=self.show_instructions)
@@ -73,6 +79,8 @@ class Front(object):
             self.diff_opt.grid(row=4, column=i+col, columnspan=2)
             self.difficulties.append(self.diff_opt)
             col += 1
+
+        self.speed = 0
 
         self.play = tk.Button(self.mainframe, text="PLAY", command=self.play, font=self.font_title, width=6)
         self.play.config(bg=self.btn_color, fg=self.font_color)
@@ -120,9 +128,11 @@ class Front(object):
         for btn in self.difficulties:
             btn.config(bg=self.btn_color, fg=self.font_color)
         track.config(bg=self.font_color, fg=self.btn_color)
-        self.bk.get_track(self.difficulties.index(track))
+        self.speed = self.bk.get_track(self.difficulties.index(track))
 
     def play(self):
+        self.play["state"] = "disabled"
+        self.play.config(disabledforeground=self.btn_color, bg=self.font_color)
         # Place Player Car in the middle
         self.racetrack.coords(self.player_car, 250, 495)
         # If 'User' mode is chosen or user clicks "PLAY" without choosing a mode (Default: User Mode)
@@ -145,7 +155,9 @@ class Front(object):
                 play_default = False
         if play_default:
             self.difficulties[1].config(bg=self.font_color, fg=self.btn_color)
-            self.bk.get_track(1)
+            self.speed = self.bk.get_track(1)
+
+        self.play_background()
 
     def move(self, event):
         direction = event
@@ -155,6 +167,11 @@ class Front(object):
             self.racetrack.move(self.player_car, -10, 0)
         else:
             self.racetrack.move(self.player_car, 10, 0)
+
+    def play_background(self):
+        if int(self.racetrack.coords(self.obstacle_car)[1]) < 600:
+            self.racetrack.move(self.obstacle_car, 0, 10)
+            self.window.after(self.speed, self.play_background)
 
 
 window = tk.Tk()

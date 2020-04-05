@@ -13,12 +13,13 @@ class Back(object):
     def get_track(self, index):
         # Default Mode: Medium
         length = 2
-        speed = 2
+        speed = 50
         if index == 0:
             # Easy Mode
             length = 1
-            speed = 1
+            speed = 75
         if index == 2:
             # Difficulty Mode
             length = 4
-            speed = 4
+            speed = 25
+        return speed
