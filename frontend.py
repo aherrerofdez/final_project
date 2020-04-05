@@ -138,7 +138,6 @@ class Front(object):
             self.right_btn["state"] = "disabled"
             window.unbind("<KeyPress-Left>")
             window.unbind("<KeyPress-Right>")
-
         # If no track is chosen, play default track 1
         play_default = True
         for btn in self.difficulties:
