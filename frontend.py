@@ -33,9 +33,14 @@ class Front(object):
         self.mainframe.pack_propagate(0)
         self.mainframe.pack(fill=tk.BOTH, expand=1)
 
-        # Create Race Track Frame
-        self.racetrack = tk.Frame(self.mainframe, width=500, height=550, bg=self.path_color, highlightthickness=0)
+        # Create Race Track Canvas
+        self.racetrack = tk.Canvas(self.mainframe, width=500, height=550, bg=self.path_color, highlightthickness=0)
         self.racetrack.grid(row=0, column=0, rowspan=8, padx=(25, 25), pady=(25, 0))
+        car_size = 100, 100
+        player_png = Image.open("img/player_car.png")
+        player_png.thumbnail(car_size)
+        self.player_img = ImageTk.PhotoImage(player_png)
+        self.player_car = self.racetrack.create_image(250, 495, image=self.player_img)
 
         # Create Settings Panel
         self.instructions = tk.Button(self.mainframe, text="INSTRUCTIONS", command=self.show_instructions)
@@ -81,26 +86,27 @@ class Front(object):
         arrow_left.thumbnail(size)
         self.left_arrow = ImageTk.PhotoImage(arrow_left)
         self.left_btn = tk.Button(self.controls_frame, image=self.left_arrow, bg=self.bg_color, bd=0)
-        self.left_btn.config(activebackground=self.bg_color, state="disabled", width=100)
+        self.left_btn.config(activebackground=self.bg_color, state="disabled",
+                             command=lambda direction="Left": self.move(direction))
         self.left_btn.grid(row=0, column=0)
+
+        space_lb = tk.Label(self.controls_frame, bg=self.bg_color, width=8)
+        space_lb.grid(row=0, column=1)
 
         arrow_right = Image.open("img/right.png")
         arrow_right.thumbnail(size)
         self.right_arrow = ImageTk.PhotoImage(arrow_right)
         self.right_btn = tk.Button(self.controls_frame, image=self.right_arrow, bg=self.bg_color, bd=0)
-        self.right_btn.config(activebackground=self.bg_color, state="disabled", width=100)
-        self.right_btn.grid(row=0, column=1)
+        self.right_btn.config(activebackground=self.bg_color, state="disabled",
+                              command=lambda direction="Right": self.move(direction))
+        self.right_btn.grid(row=0, column=2)
 
         self.exit = tk.Button(self.mainframe, text="EXIT", command=sys.exit, font=self.font_body, width=6)
         self.exit.config(bg=self.btn_color, fg=self.font_color)
         self.exit.grid(row=7, column=1, columnspan=6, pady=25)
 
     def show_instructions(self):
-        instructions = '1. Choosing a Mode: \n     - User Mode: if you want to play the game. \n     - Computer Mode:' \
-                       ' if you want to watch our AI play. \n \n 2. Choosing a Difficulty Level: \n You can choose ' \
-                       'any level among Easy, Medium and Difficult. \n \n 3. Click on "PLAY" to start playing. \n \n ' \
-                       '4. Click on "EXIT" if you want to close the game.'
-        info = messagebox.showinfo(message=instructions, parent=self.mainframe, title="Instructions")
+        messagebox.showinfo(message=self.bk.get_instructions(), parent=self.mainframe, title="Instructions")
 
     def play_user(self):
         self.comp_btn.config(bg=self.btn_color, fg=self.font_color)
@@ -114,38 +120,24 @@ class Front(object):
         for btn in self.difficulties:
             btn.config(bg=self.btn_color, fg=self.font_color)
         track.config(bg=self.font_color, fg=self.btn_color)
-        self.get_track(self.difficulties.index(track))
-
-    def track_easy(self):
-        length = 1
-        speed = 1
-
-    def track_medium(self):
-        length = 2
-        speed = 2
-
-    def track_difficult(self):
-        lenght = 4
-        speed = 4
-
-    def get_track(self, index):
-        switcher = {
-            0: self.track_easy,
-            1: self.track_medium,
-            2: self.track_difficult
-        }
-        level = switcher.get(index)
-        return level()
+        self.bk.get_track(self.difficulties.index(track))
 
     def play(self):
+        # Place Player Car in the middle
+        self.racetrack.coords(self.player_car, 250, 495)
         # If 'User' mode is chosen or user clicks "PLAY" without choosing a mode (Default: User Mode)
+        self.user_btn.config(bg=self.font_color, fg=self.btn_color)
+        self.left_btn["state"] = "active"
+        self.right_btn["state"] = "active"
+        window.bind("<KeyPress-Left>", lambda e: self.move(e))
+        window.bind("<KeyPress-Right>", lambda e: self.move(e))
+        # If 'Computer AI' mode is chosen
         if self.comp_btn["bg"] == self.font_color:
+            self.user_btn.config(bg=self.btn_color, fg=self.font_color)
             self.left_btn["state"] = "disabled"
             self.right_btn["state"] = "disabled"
-        else:
-            self.user_btn.config(bg=self.font_color, fg=self.btn_color)
-            self.left_btn["state"] = "active"
-            self.right_btn["state"] = "active"
+            window.unbind("<KeyPress-Left>")
+            window.unbind("<KeyPress-Right>")
 
         # If no track is chosen, play default track 1
         play_default = True
@@ -154,7 +146,16 @@ class Front(object):
                 play_default = False
         if play_default:
             self.difficulties[1].config(bg=self.font_color, fg=self.btn_color)
-            self.get_track(1)
+            self.bk.get_track(1)
+
+    def move(self, event):
+        direction = event
+        if type(event) is not str:
+            direction = event.keysym
+        if direction == "Left":
+            self.racetrack.move(self.player_car, -10, 0)
+        else:
+            self.racetrack.move(self.player_car, 10, 0)
 
 
 window = tk.Tk()
