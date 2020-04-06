@@ -14,15 +14,15 @@ class Back(object):
     @staticmethod
     def get_track(index):
         # Default Mode: Medium
-        length = 1.7
-        speed = 50
+        length = 0.9
+        speed = 12
         if index == 0:
             # Easy Mode
-            length = 2.5
-            speed = 75
+            length = 1.7
+            speed = 25
         if index == 2:
             # Difficulty Mode
-            length = 0.9
-            speed = 25
+            length = 0.4
+            speed = 6
         params = [speed, length]
         return params

@@ -141,17 +141,21 @@ class Front(object):
     def play(self):
         self.play["state"] = "disabled"
         self.play.config(disabledforeground=self.btn_color, bg=self.font_color)
+        self.user_btn["state"] = "disabled"
+        self.comp_btn["state"] = "disabled"
         # Place Player Car in the middle
         self.racetrack.coords(self.player_car, 250, 495)
         # If 'User' mode is chosen or user clicks "PLAY" without choosing a mode (Default: User Mode)
         self.user_btn.config(bg=self.font_color, fg=self.btn_color)
+        self.comp_btn.config(disabledforeground=self.font_color)
         self.left_btn["state"] = "active"
         self.right_btn["state"] = "active"
         window.bind("<KeyPress-Left>", lambda e: self.move(e))
         window.bind("<KeyPress-Right>", lambda e: self.move(e))
         # If 'Computer AI' mode is chosen
         if self.comp_btn["bg"] == self.font_color:
-            self.user_btn.config(bg=self.btn_color, fg=self.font_color)
+            self.comp_btn.config(disabledforeground=self.btn_color)
+            self.user_btn.config(bg=self.btn_color, fg=self.font_color, disabledforeground=self.font_color)
             self.left_btn["state"] = "disabled"
             self.right_btn["state"] = "disabled"
             window.unbind("<KeyPress-Left>")
@@ -179,9 +183,11 @@ class Front(object):
         if type(event) is not str:
             direction = event.keysym
         if direction == "Left":
-            self.racetrack.move(self.player_car, -10, 0)
+            if self.racetrack.coords(self.player_car)[0] > 25:
+                self.racetrack.move(self.player_car, -15, 0)
         else:
-            self.racetrack.move(self.player_car, 10, 0)
+            if self.racetrack.coords(self.player_car)[0] < 475:
+                self.racetrack.move(self.player_car, 15, 0)
 
     def play_background(self):
         if (time.time() - self.start_time) >= 60:
@@ -191,7 +197,7 @@ class Front(object):
                 self.start_play2 = False
                 self.play_background2()
             if int(self.racetrack.coords(self.obstacle_car)[1]) < 600:
-                self.racetrack.move(self.obstacle_car, 0, 10)
+                self.racetrack.move(self.obstacle_car, 0, 5)
                 self.window.after(self.speed, self.play_background)
             else:
                 x = random.randint(25, 475)
@@ -201,7 +207,7 @@ class Front(object):
     def play_background2(self):
         if (time.time() - self.start_time) <= 60:
             if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
-                self.racetrack.move(self.obstacle_car2, 0, 10)
+                self.racetrack.move(self.obstacle_car2, 0, 5)
                 self.window.after(self.speed, self.play_background2)
             else:
                 x = random.randint(25, 475)
