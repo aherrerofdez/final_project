@@ -9,7 +9,7 @@ from PIL import ImageTk, Image
 
 
 class Front(object):
-    def __init__(self, w, speed=0, length=0, start_time=0, start_play2=True):
+    def __init__(self, w, speed=0, length=0, start_time=0, start_play2=True, game_over=False):
         # Connect with BackEnd
         self.bk = backend.Back()
 
@@ -18,6 +18,7 @@ class Front(object):
         self.length = length
         self.start_time = start_time
         self.start_play2 = start_play2
+        self.game_over = game_over
 
         # Define Colors
         self.bg_color = "#85A7B4"
@@ -51,6 +52,7 @@ class Front(object):
         player_png.thumbnail(car_size)
         self.player_img = ImageTk.PhotoImage(player_png)
         self.player_car = self.racetrack.create_image(250, 495, image=self.player_img)
+        self.upper_lim = 445
 
         # Create Obstacles
         obstacle_png = Image.open("img/obstacle_car.png")
@@ -194,8 +196,10 @@ class Front(object):
 
     # Add obstacles
     def play_background(self):
-        if (time.time() - self.start_time) >= 60:
-            self.end_game()
+        if not self.game_over:
+            self.game_over = self.check_crash(self.obstacle_car)
+        if (time.time() - self.start_time) >= 60 or self.game_over:
+            self.end_game(self.game_over)
         else:
             if round((time.time() - self.start_time), 1) == self.length and self.start_play2:
                 self.start_play2 = False
@@ -210,18 +214,30 @@ class Front(object):
 
     # Allows to have two obstacles in the screen at the same time
     def play_background2(self):
-        if (time.time() - self.start_time) <= 60:
-            if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
-                self.racetrack.move(self.obstacle_car2, 0, 5)
-                self.window.after(self.speed, self.play_background2)
-            else:
-                x = random.randint(25, 475)
-                self.racetrack.coords(self.obstacle_car2, x, -50)
-                self.window.after(self.speed, self.play_background2)
+        self.game_over = self.check_crash(self.obstacle_car2)
+        if not self.game_over:
+            if (time.time() - self.start_time) <= 60:
+                if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
+                    self.racetrack.move(self.obstacle_car2, 0, 5)
+                    self.window.after(self.speed, self.play_background2)
+                else:
+                    x = random.randint(25, 475)
+                    self.racetrack.coords(self.obstacle_car2, x, -50)
+                    self.window.after(self.speed, self.play_background2)
+
+    # Check if player car has crashed with obstacle (compare coords)
+    def check_crash(self, car):
+        if self.racetrack.coords(car)[1] > self.upper_lim:
+            if abs(self.racetrack.coords(self.player_car)[0] - self.racetrack.coords(car)[0]) < 50:
+                return True
+        return False
 
     # Game Ended (either time limit is over (player won) or player lost crashing into an obstacle)
-    def end_game(self):
-        msg_box = messagebox.askyesno(message="Game Over. \n Do you want to play again?")
+    def end_game(self, game_over):
+        message = "Congratulations!! You won. \n \n Do you want to play again?"
+        if game_over:
+            message = "Game Over. \n \n Do you want to try again?"
+        msg_box = messagebox.askyesno(message=message)
         if msg_box:
             self.mainframe.destroy()
             Front(self.window)
