@@ -18,11 +18,11 @@ class Back(object):
         speed = 12
         if index == 0:
             # Easy Mode
-            length = 1.7
-            speed = 25
+            length = 1
+            speed = 15
         if index == 2:
             # Difficulty Mode
-            length = 0.4
-            speed = 6
+            length = 0.5
+            speed = 8
         params = [speed, length]
         return params

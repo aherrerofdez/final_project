@@ -45,35 +45,41 @@ class Front(object):
         self.racetrack = tk.Canvas(self.mainframe, width=500, height=550, bg=self.path_color, highlightthickness=0)
         self.racetrack.grid(row=0, column=0, rowspan=8, padx=(25, 25), pady=(25, 0))
 
+        # Create Player Car
         car_size = 100, 100
         player_png = Image.open("img/player_car.png")
         player_png.thumbnail(car_size)
         self.player_img = ImageTk.PhotoImage(player_png)
         self.player_car = self.racetrack.create_image(250, 495, image=self.player_img)
 
+        # Create Obstacles
         obstacle_png = Image.open("img/obstacle_car.png")
         obstacle_png.thumbnail(car_size)
         self.obstacle_img = ImageTk.PhotoImage(obstacle_png)
         self.obstacle_car = self.racetrack.create_image(25, -50, image=self.obstacle_img)
         self.obstacle_car2 = self.racetrack.create_image(475, 600, image=self.obstacle_img)
 
-        # Create Settings Panel
+        # --Create Settings Panel--
+        # Instructions
         self.instructions = tk.Button(self.mainframe, text="INSTRUCTIONS", command=self.show_instructions)
-        self.instructions.config(font=self.font_body, bg=self.btn_color, fg=self.font_color)
+        self.instructions.config(font=self.font_body, bg=self.btn_color, fg=self.font_color,
+                                 disabledforeground=self.font_color)
         self.instructions.grid(row=0, column=1, columnspan=6, pady=(50, 0))
 
+        # Modes: User or Computer AI
         self.mode_lb = tk.Label(self.mainframe, text="MODE", bg=self.bg_color, fg=self.btn_color)
         self.mode_lb.config(font=self.font_title)
         self.mode_lb.grid(row=1, column=1, columnspan=6, pady=(20, 5))
 
         self.user_btn = tk.Button(self.mainframe, text="USER", command=self.play_user, font=self.font_body)
-        self.user_btn.config(bg=self.btn_color, fg=self.font_color, width=15)
+        self.user_btn.config(bg=self.btn_color, fg=self.font_color, width=15, disabledforeground=self.font_color)
         self.user_btn.grid(row=2, column=1, columnspan=3, padx=(5, 0))
 
         self.comp_btn = tk.Button(self.mainframe, text="COMPUTER AI", command=self.play_comp, font=self.font_body)
-        self.comp_btn.config(bg=self.btn_color, fg=self.font_color, width=15)
+        self.comp_btn.config(bg=self.btn_color, fg=self.font_color, width=15, disabledforeground=self.font_color)
         self.comp_btn.grid(row=2, column=4, columnspan=3, padx=(0, 5))
 
+        # Levels of Difficulty
         self.difficulties_lb = tk.Label(self.mainframe, text="DIFFICULTY", bg=self.bg_color, fg=self.btn_color)
         self.difficulties_lb.config(font=self.font_title)
         self.difficulties_lb.grid(row=3, column=1, columnspan=6, pady=(20, 5))
@@ -83,16 +89,18 @@ class Front(object):
         col = 1
         for i in range(3):
             self.diff_opt = tk.Button(self.mainframe, text=mode[i], font=self.font_body, width=10)
-            self.diff_opt.config(bg=self.btn_color, fg=self.font_color,
-                                 command=lambda track=self.diff_opt: self.choose_difficulty(track))
+            self.diff_opt.config(bg=self.btn_color, fg=self.font_color, disabledforeground=self.font_color,
+                                 command=lambda level=self.diff_opt: self.choose_difficulty(level))
             self.diff_opt.grid(row=4, column=i+col, columnspan=2)
             self.difficulties.append(self.diff_opt)
             col += 1
 
+        # Play Button
         self.play = tk.Button(self.mainframe, text="PLAY", command=self.play, font=self.font_title, width=6)
-        self.play.config(bg=self.btn_color, fg=self.font_color)
+        self.play.config(bg=self.btn_color, fg=self.font_color, disabledforeground=self.btn_color)
         self.play.grid(row=5, column=1, columnspan=6, pady=(30, 25))
 
+        # Arrow Controls Area
         self.controls_frame = tk.Frame(master=self.mainframe, bg=self.bg_color, width=325, height=100)
         self.controls_frame.grid(row=6, column=1, columnspan=6)
 
@@ -116,68 +124,63 @@ class Front(object):
                               command=lambda direction="Right": self.move(direction))
         self.right_btn.grid(row=0, column=2)
 
+        # Exit Button
         self.exit = tk.Button(self.mainframe, text="EXIT", command=sys.exit, font=self.font_body, width=6)
         self.exit.config(bg=self.btn_color, fg=self.font_color)
         self.exit.grid(row=7, column=1, columnspan=6, pady=25)
 
+    # Show Instructions Message from Back-End
     def show_instructions(self):
         messagebox.showinfo(message=self.bk.get_instructions(), parent=self.mainframe, title="Instructions")
 
+    # If User plays, modify mode buttons colors
     def play_user(self):
         self.comp_btn.config(bg=self.btn_color, fg=self.font_color)
         self.user_btn.config(bg=self.font_color, fg=self.btn_color)
 
+    # If Computer plays, modify their colors and connect with AI
     def play_comp(self):
         self.user_btn.config(bg=self.btn_color, fg=self.font_color)
         self.comp_btn.config(bg=self.font_color, fg=self.btn_color)
 
-    def choose_difficulty(self, track):
+    # Modify colors of difficulty buttons, and get track parameters of chosen difficulty
+    def choose_difficulty(self, level):
         for btn in self.difficulties:
             btn.config(bg=self.btn_color, fg=self.font_color)
-        track.config(bg=self.font_color, fg=self.btn_color)
-        self.speed = self.bk.get_track(self.difficulties.index(track))[0]
-        self.length = self.bk.get_track(self.difficulties.index(track))[1]
+        level.config(bg=self.font_color, fg=self.btn_color, disabledforeground=self.btn_color)
+        self.speed = self.bk.get_track(self.difficulties.index(level))[0]
+        self.length = self.bk.get_track(self.difficulties.index(level))[1]
 
+    # Disable All Buttons (except Exit Button), Activate Arrows, Bind Arrow Keys, Set Default Game
     def play(self):
-        self.play["state"] = "disabled"
-        self.play.config(disabledforeground=self.btn_color, bg=self.font_color)
+        self.play.config(state="disabled", bg=self.font_color)
+        self.instructions["state"] = "disabled"
         self.user_btn["state"] = "disabled"
         self.comp_btn["state"] = "disabled"
-        # Place Player Car in the middle
-        self.racetrack.coords(self.player_car, 250, 495)
-        # If 'User' mode is chosen or user clicks "PLAY" without choosing a mode (Default: User Mode)
-        self.user_btn.config(bg=self.font_color, fg=self.btn_color)
-        self.comp_btn.config(disabledforeground=self.font_color)
-        self.left_btn["state"] = "active"
-        self.right_btn["state"] = "active"
-        window.bind("<KeyPress-Left>", lambda e: self.move(e))
-        window.bind("<KeyPress-Right>", lambda e: self.move(e))
-        # If 'Computer AI' mode is chosen
-        if self.comp_btn["bg"] == self.font_color:
+        # If 'User' plays or Default mode
+        if self.comp_btn["bg"] == self.btn_color:
+            self.user_btn.config(bg=self.font_color, disabledforeground=self.btn_color)
+            self.right_btn["state"] = "active"
+            self.left_btn["state"] = "active"
+            window.bind("<KeyPress-Left>", lambda e: self.move(e))
+            window.bind("<KeyPress-Right>", lambda e: self.move(e))
+        # If 'Computer' plays
+        else:
             self.comp_btn.config(disabledforeground=self.btn_color)
-            self.user_btn.config(bg=self.btn_color, fg=self.font_color, disabledforeground=self.font_color)
-            self.left_btn["state"] = "disabled"
-            self.right_btn["state"] = "disabled"
-            window.unbind("<KeyPress-Left>")
-            window.unbind("<KeyPress-Right>")
-        # If no track is chosen, play default track 1
+        # If no Difficulty Level is chosen, play default 'Medium'
         play_default = True
         for btn in self.difficulties:
+            btn["state"] = "disabled"
             if btn["bg"] == self.font_color:
                 play_default = False
-                btn["state"] = "disabled"
                 btn.config(disabledforeground=self.btn_color)
-            else:
-                btn["state"] = "disabled"
-                btn.config(disabledforeground=self.font_color)
         if play_default:
-            self.difficulties[1].config(bg=self.font_color, fg=self.btn_color, disabledforeground=self.btn_color)
-            self.speed = self.bk.get_track(1)[0]
-            self.length = self.bk.get_track(1)[1]
-
+            self.choose_difficulty(self.difficulties[1])
+        # Start timer and background
         self.start_time = time.time()
         self.play_background()
 
+    # Move Player Car to Left/Right through Keys or Arrows on screen
     def move(self, event):
         direction = event
         if type(event) is not str:
@@ -189,6 +192,7 @@ class Front(object):
             if self.racetrack.coords(self.player_car)[0] < 475:
                 self.racetrack.move(self.player_car, 15, 0)
 
+    # Add obstacles
     def play_background(self):
         if (time.time() - self.start_time) >= 60:
             self.end_game()
@@ -204,6 +208,7 @@ class Front(object):
                 self.racetrack.coords(self.obstacle_car, x, -50)
                 self.window.after(self.speed, self.play_background)
 
+    # Allows to have two obstacles in the screen at the same time
     def play_background2(self):
         if (time.time() - self.start_time) <= 60:
             if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
@@ -214,6 +219,7 @@ class Front(object):
                 self.racetrack.coords(self.obstacle_car2, x, -50)
                 self.window.after(self.speed, self.play_background2)
 
+    # Game Ended (either time limit is over (player won) or player lost crashing into an obstacle)
     def end_game(self):
         msg_box = messagebox.askyesno(message="Game Over. \n Do you want to play again?")
         if msg_box:
