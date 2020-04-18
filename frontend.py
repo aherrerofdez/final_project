@@ -214,7 +214,8 @@ class Front(object):
 
     # Allows to have two obstacles in the screen at the same time
     def play_background2(self):
-        self.game_over = self.check_crash(self.obstacle_car2)
+        if not self.game_over:
+            self.game_over = self.check_crash(self.obstacle_car2)
         if not self.game_over:
             if (time.time() - self.start_time) <= 60:
                 if int(self.racetrack.coords(self.obstacle_car2)[1]) < 600:
